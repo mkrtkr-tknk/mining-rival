@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MINING RIVAL</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#eceae4;--fg:#25231f;--panel:#fff;--rock:#9a978e;--rock2:#84817a;--dug:#d9d5c8;--p1:#e8730c;--p2:#1f9d55;--num:#1c64d8;--tnt:#d62d2d;--mut:#6b675e}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1a18;--fg:#eee9dd;--panel:#2a2825;--rock:#6d6a62;--rock2:#58554f;--dug:#38352f;--p1:#ff9a3c;--p2:#3ddc84;--num:#6fb0ff;--tnt:#ff6b6b;--mut:#a09a8c}}
+:root[data-theme="dark"]{--bg:#1b1a18;--fg:#eee9dd;--panel:#2a2825;--rock:#6d6a62;--rock2:#58554f;--dug:#38352f;--p1:#ff9a3c;--p2:#3ddc84;--num:#6fb0ff;--tnt:#ff6b6b;--mut:#a09a8c}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;display:flex;justify-content:center}
+.wrap{width:100%;max-width:460px;padding:12px}
+h1{font-size:18px;margin:4px 0 10px;letter-spacing:.08em;text-align:center}
+.screen{display:none}
+.screen.active{display:block}
+.menuCard{display:flex;flex-direction:column;gap:10px;margin:20px 0 16px}
+.bigbtn{padding:16px;border-radius:12px;border:none;background:var(--fg);color:var(--bg);font-size:16px;font-weight:700;cursor:pointer}
+.bigbtn.ghost{background:var(--panel);color:var(--fg);border:2px solid var(--rock)}
+.scrTitle{font-size:15px;margin:6px 0 12px;font-weight:700}
+.sizebtns{display:flex;gap:8px;margin:2px 0 4px}
+.sizebtn{flex:1;padding:10px;border-radius:8px;border:2px solid var(--rock);background:var(--panel);color:var(--fg);font-size:14px;cursor:pointer}
+.sizebtn.on{border-color:var(--fg);font-weight:700;background:var(--dug)}
+.score{display:flex;gap:8px}
+.pl{position:relative;flex:1;background:var(--panel);border-radius:10px;padding:8px 10px;border:3px solid transparent;overflow:visible}
+.pl.on{border-color:currentColor}
+.pl b{font-size:12px}.pl .n{font-size:26px;font-weight:700;line-height:1.1}
+.bar{height:5px;background:var(--dug);border-radius:3px;margin-top:4px;overflow:hidden}.bar i{display:block;height:100%;background:currentColor;width:0;transition:width .3s}
+#p1{color:var(--p1)}#p2{color:var(--p2)}
+.msg{margin:10px 0;font-size:14px;min-height:20px}
+.modes{display:flex;gap:8px;margin-bottom:10px}
+.modes button{flex:1;padding:10px;border-radius:8px;border:2px solid var(--rock);background:var(--panel);color:var(--fg);font-size:14px;cursor:pointer}
+.modes button.on{border-color:var(--fg);font-weight:700}
+#board{display:grid;gap:2px;background:var(--rock2);padding:2px;border-radius:6px;position:relative}
+.c{aspect-ratio:1;position:relative;border:0;padding:0;border-radius:1px;cursor:pointer;color:var(--fg);font-weight:700;font-size:clamp(11px,3.6vw,16px);
+background:radial-gradient(circle at 22% 26%,rgba(0,0,0,.16) 0 14%,transparent 15%),radial-gradient(circle at 70% 20%,rgba(255,255,255,.14) 0 10%,transparent 11%),radial-gradient(circle at 38% 72%,rgba(0,0,0,.14) 0 16%,transparent 17%),radial-gradient(circle at 80% 66%,rgba(0,0,0,.12) 0 12%,transparent 13%),var(--rock);
+box-shadow:inset 3px 3px 0 rgba(255,255,255,.3),inset -3px -3px 0 rgba(0,0,0,.3)}
+.c.o{background:var(--dug);box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);cursor:default;outline:2px solid transparent;outline-offset:-2px}
+.c.o.ore-coal{background:radial-gradient(circle at 26% 30%,#222 0 16%,transparent 17%),radial-gradient(circle at 66% 58%,#1b1b1b 0 18%,transparent 19%),radial-gradient(circle at 42% 76%,#2c2c2c 0 13%,transparent 14%),var(--dug)}
+.c.o.ore-iron{background:radial-gradient(circle at 28% 28%,#dba26c 0 18%,transparent 19%),radial-gradient(circle at 68% 58%,#e8b989 0 15%,transparent 16%),radial-gradient(circle at 45% 80%,#c78b52 0 13%,transparent 14%),var(--dug)}
+.c.o.ore-gold{background:radial-gradient(circle at 28% 28%,#f6d658 0 18%,transparent 19%),radial-gradient(circle at 68% 58%,#fbe488 0 15%,transparent 16%),radial-gradient(circle at 45% 80%,#dcae1a 0 13%,transparent 14%),var(--dug)}
+.c.o.ore-diamond{background:radial-gradient(circle at 28% 28%,#8ceef6 0 18%,transparent 19%),radial-gradient(circle at 68% 58%,#b6f5fa 0 15%,transparent 16%),radial-gradient(circle at 45% 80%,#4fd6e2 0 13%,transparent 14%),var(--dug)}
+.c.o.ore-tnt{background:repeating-linear-gradient(45deg,#c0392b 0 18%,#961f14 18% 22%);box-shadow:inset 0 0 0 2px rgba(0,0,0,.4)}
+.c .xr{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(18px,6vw,28px);opacity:.4;pointer-events:none;filter:grayscale(.15)}
+.c.by1{outline-color:var(--p1)}.c.by2{outline-color:var(--p2)}
+.c .e{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(22px,7.4vw,34px);opacity:.55;pointer-events:none}
+.c .a{position:absolute;left:2px;top:0;color:var(--num);text-shadow:0 0 3px var(--dug),0 0 3px var(--dug),0 0 2px var(--dug)}.c .t{position:absolute;right:2px;bottom:0;font-size:clamp(11px,3.6vw,15px);color:var(--tnt);text-shadow:0 0 3px var(--dug),0 0 3px var(--dug),0 0 2px var(--dug)}
+.fl{position:absolute;inset:15%;width:70%;height:70%}.f1{color:var(--p1)}.f2{color:var(--p2)}
+.c .m{font-size:clamp(14px,4.6vw,20px)}
+.rule{font-size:11px;color:var(--mut);margin-top:10px;line-height:1.6}
+.btnrow{display:flex;gap:8px;margin-top:10px}
+.reset{padding:8px 14px;border-radius:8px;border:1px solid var(--rock);background:var(--panel);color:var(--fg);cursor:pointer;font-size:13px}
+.settings{background:var(--panel);border-radius:10px;padding:10px 12px;font-size:13px}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0}
+.srow label{color:var(--mut)}
+.srow input{width:64px;padding:5px 6px;border-radius:6px;border:1px solid var(--rock);background:var(--bg);color:var(--fg);font-size:13px;text-align:right}
+.serr{color:var(--tnt);font-size:11px;min-height:14px;margin-top:4px}
+.sapply{flex:1}
+.shard{position:fixed;width:9px;height:9px;border-radius:1px;pointer-events:none;z-index:80;box-shadow:inset 1px 1px 0 rgba(255,255,255,.4),inset -1px -1px 0 rgba(0,0,0,.3);animation:shardfly .55s cubic-bezier(.2,.8,.3,1) forwards}
+@keyframes shardfly{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
+.shardf{position:fixed;width:9px;height:9px;border-radius:1px;pointer-events:none;z-index:80;box-shadow:inset 1px 1px 0 rgba(255,255,255,.4),inset -1px -1px 0 rgba(0,0,0,.3);animation:shardfall linear forwards}
+@keyframes shardfall{
+0%{transform:translate(0,0) rotate(0);opacity:1}
+20%{transform:translate(calc(var(--dx)*.2),calc(var(--dy)*.04)) rotate(calc(var(--r)*.2))}
+40%{transform:translate(calc(var(--dx)*.4),calc(var(--dy)*.16)) rotate(calc(var(--r)*.4))}
+60%{transform:translate(calc(var(--dx)*.6),calc(var(--dy)*.36)) rotate(calc(var(--r)*.6))}
+80%{transform:translate(calc(var(--dx)*.8),calc(var(--dy)*.64)) rotate(calc(var(--r)*.8));opacity:1}
+92%{opacity:.7}
+100%{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
+.boom{position:fixed;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;pointer-events:none;z-index:90;background:radial-gradient(circle,#fff 0%,#ffd23f 28%,#ff8a1e 55%,#e0432c 78%,transparent 100%);animation:boomfx .5s ease-out forwards}
+@keyframes boomfx{0%{transform:scale(.3);opacity:1}55%{opacity:1}100%{transform:scale(10);opacity:0}}
+.shake{animation:shakefx .32s}
+@keyframes shakefx{0%,100%{transform:translate(0,0)}20%{transform:translate(-4px,2px)}40%{transform:translate(4px,-2px)}60%{transform:translate(-3px,1px)}80%{transform:translate(3px,-1px)}}
+.popup{position:absolute;top:4px;right:8px;font-weight:800;font-size:15px;pointer-events:none;opacity:0;animation:popfx .9s ease-out forwards;color:currentColor}
+.popup.neg{color:var(--tnt)}
+@keyframes popfx{0%{opacity:0;transform:translateY(6px) scale(.5)}15%{opacity:1;transform:translateY(-4px) scale(1.2)}32%{opacity:1;transform:translateY(-8px) scale(1)}100%{opacity:0;transform:translateY(-36px) scale(1)}}
+.pl.winner{border-color:currentColor;box-shadow:0 0 0 2px currentColor,0 6px 16px -6px currentColor;animation:winpulse 1.4s ease-in-out infinite}
+.pl.winner::after{content:'';position:absolute;inset:0;background:currentColor;opacity:.08;border-radius:inherit;pointer-events:none}
+@keyframes winpulse{0%,100%{box-shadow:0 0 0 2px currentColor,0 6px 16px -6px currentColor}50%{box-shadow:0 0 0 2px currentColor,0 8px 22px -4px currentColor}}
+.winnerTag{position:absolute;top:-10px;left:50%;transform:translateX(-50%);color:var(--panel);font-size:10px;font-weight:800;padding:2px 10px;border-radius:20px;letter-spacing:.06em;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.winnerTag.c1{background:var(--p1)}
+.winnerTag.c2{background:var(--p2)}
+</style></head><body><div class="wrap">
+<h1>⛏ MINING RIVAL</h1>
+
+<div class="screen active" id="scrMenu">
+<div class="menuCard">
+<button class="bigbtn" id="mStartHuman">👤 2人対戦をスタート</button>
+<button class="bigbtn" id="mStartCpu">🤖 CPU対戦をスタート</button>
+<button class="bigbtn ghost" id="mSettings">⚙ 設定</button>
+</div>
+<div class="rule">
+<b>ルール</b>：交互に1手ずつマスを掘り、先に<span id="ruleTarget">30</span>ptで勝利（ハズレ0pt/石炭2pt/鉄3pt/金5pt/ダイヤ10pt）<br>
+掘ったマスの <span style="color:var(--num)">青数字</span>＝周囲8マスに残る鉱石の合計ポイント<br>
+掘ったマスの <span style="color:var(--tnt)">赤数字</span>＝周囲の爆弾の数<br>
+爆弾のマスを掘ってしまったら−3pt＆周囲のマスを爆破（中の鉱石も消滅）。<br>
+危険なブロックには旗（目印）を立てることができます。旗は自分の色で立ち、ターンを消費しません（右クリックでも可）。自分の旗のマスは掘れず、旗を外せるのも自分だけ。相手の旗のマスを掘ってTNTでなければ、鉱石に加えて+3pt。<br>
+最初の1手は安全。TNTは高価値の鉱石の近くほど多く埋まっています。
+</div>
+</div>
+
+<div class="screen" id="scrSettings">
+<div class="scrTitle">設定</div>
+<div class="settings">
+<div class="srow"><label>⬛ 盤面サイズ</label></div>
+<div class="sizebtns">
+<button class="sizebtn" data-size="8">8×8</button>
+<button class="sizebtn" data-size="10">10×10</button>
+<button class="sizebtn" data-size="12">12×12</button>
+</div>
+<div class="srow"><label>💎 ダイヤの数</label><input type="number" id="cfg-diamond" min="0"></div>
+<div class="srow"><label>🟡 金の数</label><input type="number" id="cfg-gold" min="0"></div>
+<div class="srow"><label>🔶 鉄の数</label><input type="number" id="cfg-iron" min="0"></div>
+<div class="srow"><label>🪨 石炭の数</label><input type="number" id="cfg-coal" min="0"></div>
+<div class="srow"><label>🧨 TNTの数</label><input type="number" id="cfg-tnt" min="0"></div>
+<div class="srow"><label>🏁 勝利ポイント</label><input type="number" id="cfg-target" min="1"></div>
+<div class="serr" id="stgErr"></div>
+</div>
+<div class="btnrow"><button class="reset" id="stgBack">← 戻る</button><button class="reset sapply" id="stgApply">保存してメニューへ</button></div>
+</div>
+
+<div class="screen" id="scrGame">
+<div class="score"><div class="pl" id="p1"><b>PLAYER 1</b><div class="n">0</div><div class="bar"><i></i></div></div><div class="pl" id="p2"><b>PLAYER 2</b><div class="n">0</div><div class="bar"><i></i></div></div></div>
+<div class="msg" id="msg"></div>
+<div class="rule" style="margin-top:-6px;margin-bottom:8px">🏁 勝利ポイント：<b id="gameTarget">35</b>pt</div>
+<div class="modes"><button id="bd" class="on">⛏ 掘る</button><button id="bf">🚩 旗を立てる</button></div>
+<div id="board"></div>
+<div class="btnrow"><button class="reset" id="rs">🔄 もう一度</button><button class="reset" id="toMenu">🏠 メニューへ</button></div>
+</div>
+
+</div>
+<script>
+let N=10;
+const DEFAULT_CFG={size:8,opponent:'human',diamond:3,gold:5,iron:8,coal:12,tnt:13,target:35},V={stone:0,coal:2,iron:3,gold:5,diamond:10,tnt:0},NM={stone:'ハズレ',coal:'石炭',iron:'鉄',gold:'金',diamond:'ダイヤ',tnt:'TNT'},EM={stone:'',coal:'🪨',iron:'🔶',gold:'🟡',diamond:'💎',tnt:'🧨'};
+let g,sc,p,mode,started,over,dispSc,CFG={...DEFAULT_CFG},pendingSize=CFG.size;
+const nb=i=>{const r=[],x=i%N,y=(i/N)|0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;const a=x+dx,b=y+dy;if(a>=0&&a<N&&b>=0&&b<N)r.push(b*N+a)}return r};
+const $=id=>document.getElementById(id);
+const ORECLR={stone:'#8f8c84',coal:'#2b2b2b',iron:'#dba26c',gold:'#f6d658',diamond:'#8ceef6',tnt:'#e0432c'};
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id))}
+function spark(cx,cy,col,dist){const d=document.createElement('div');d.className='shard';const ang=Math.random()*Math.PI*2,ds=dist+Math.random()*dist*.7;
+d.style.left=cx+'px';d.style.top=cy+'px';d.style.background=col;
+d.style.setProperty('--dx',Math.cos(ang)*ds+'px');d.style.setProperty('--dy',(Math.sin(ang)*ds-18)+'px');d.style.setProperty('--r',(Math.random()*360)+'deg');
+document.body.appendChild(d);d.addEventListener('animationend',()=>d.remove())}
+function shatter(el,type){if(!el)return;const r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,col=ORECLR[type]||ORECLR.stone;
+for(let i=0;i<18;i++){
+const d=document.createElement('div');d.className='shardf';d.style.background=col;
+d.style.left=(cx+(Math.random()*2-1)*r.width*.3)+'px';d.style.top=(cy+(Math.random()*2-1)*r.height*.3)+'px';
+const dx=(Math.random()*2-1)*r.width*1.1,dy=(window.innerHeight-cy)+40+Math.random()*60,rot=(Math.random()*520-260)+'deg';
+d.style.setProperty('--dx',dx+'px');d.style.setProperty('--dy',dy+'px');d.style.setProperty('--r',rot);
+d.style.animationDuration=(500+Math.random()*200)+'ms';
+document.body.appendChild(d);d.addEventListener('animationend',()=>d.remove())
+}}
+function explode(el){if(!el)return;const r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+const b=document.createElement('div');b.className='boom';b.style.left=cx+'px';b.style.top=cy+'px';document.body.appendChild(b);b.addEventListener('animationend',()=>b.remove());
+for(let i=0;i<18;i++)spark(cx,cy,['#e0432c','#2b2b2b','#ffd23f'][i%3],42);
+const board=$('board');board.classList.remove('shake');void board.offsetWidth;board.classList.add('shake');setTimeout(()=>board.classList.remove('shake'),320)}
+function init(){N=CFG.size;$('board').style.gridTemplateColumns=`repeat(${N},1fr)`;g=Array.from({length:N*N},()=>({t:'stone',o:false,x:false,by:0,d:false}));sc=[0,0];dispSc=[0,0];p=0;mode='dig';started=false;over=false;
+$('p2').querySelector('b').textContent=CFG.opponent==='cpu'?'🤖 CPU':'PLAYER 2';
+$('bd').className='on';$('bf').className='';$('msg').textContent='';$('ruleTarget').textContent=CFG.target;$('gameTarget').textContent=CFG.target;render()}
+function gen(safe){const ex=new Set([safe,...nb(safe)]),pool=[...Array(N*N).keys()].filter(i=>i!==safe).sort(()=>Math.random()-.5);let k=0;
+const put=(t,n)=>{for(let c=0;c<n&&k<pool.length;c++)g[pool[k++]].t=t};
+put('diamond',CFG.diamond);put('gold',CFG.gold);put('iron',CFG.iron);put('coal',CFG.coal);
+// TNTは高価値の鉱石の近く（距離1は満点、距離2は半分）ほど置かれやすい
+const near=i=>{let w=0;const x=i%N,y=(i/N)|0;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const a=x+dx,b=y+dy;if((!dx&&!dy)||a<0||a>=N||b<0||b>=N)continue;w+=V[g[b*N+a].t]/Math.max(Math.abs(dx),Math.abs(dy))}return w};
+for(let n=0;n<CFG.tnt;n++){const c=[];g.forEach((q,i)=>{if(q.t==='stone'&&!ex.has(i))c.push({i,w:.3+near(i)})});if(!c.length)break;let r=Math.random()*c.reduce((a,o)=>a+o.w,0),pick=c[c.length-1];for(const o of c){r-=o.w;if(r<=0){pick=o;break}}g[pick.i].t='tnt'}}
+function add(n){sc[p]=Math.max(0,sc[p]+n)}
+function dig(i){const c=g[i],bonus=c.f&&c.f!==p+1;c.f=0;c.o=true;c.by=p+1;
+if(c.t==='tnt'){add(-3);c.x=true;nb(i).forEach(j=>{if(!g[j].o){g[j].o=true;g[j].x=true;g[j].f=0;g[j].by=p+1}});return}
+const v=V[c.t];add(v);
+if(bonus)add(3)}
+function flag(i){if(over)return;const c=g[i];if(c.o)return;if(!c.f)c.f=p+1;else if(c.f===p+1)c.f=0;render()}
+function popup(idx,delta){const host=$('p'+(idx+1));const d=document.createElement('div');d.className='popup'+(delta<0?' neg':'');d.textContent=(delta>0?'+':'')+delta;host.appendChild(d);d.addEventListener('animationend',()=>d.remove())}
+function animateScore(idx,to){const el=$('p'+(idx+1)).querySelector('.n'),from=dispSc[idx];if(from===to){el.textContent=to;return}
+const dur=450,start=performance.now();(function step(t){const k=Math.min(1,(t-start)/dur),v=Math.round(from+(to-from)*k);el.textContent=v;if(k<1)requestAnimationFrame(step);else dispSc[idx]=to})(start)}
+function isCpuTurn(){return CFG.opponent==='cpu'&&p===1&&!over}
+function performDig(i){if(over||g[i].o)return;if(g[i].f===p+1)return;if(!started){gen(i);started=true}
+const el=document.querySelector(`.c[data-i="${i}"]`);
+if(g[i].t==='tnt')explode(el);else shatter(el,g[i].t);
+const actor=p,before=sc[p];
+dig(i);
+const delta=sc[actor]-before;if(delta!==0)popup(actor,delta);
+if(sc[p]>=CFG.target)over=true;
+else if(!g.some(c=>!c.o&&c.t!=='stone'&&c.t!=='tnt'))over=true;
+else p=1-p;render();
+if(isCpuTurn())setTimeout(cpuTurn,650+Math.random()*500)}
+function act(i){if(over||g[i].o)return;if(mode==='flag'){flag(i);return}performDig(i)}
+function cpuTurn(){
+if(over||!isCpuTurn())return;
+const info=[];
+for(let idx=0;idx<g.length;idx++){const c=g[idx];if(!c.o||c.x)continue;const nbs=nb(idx),unopened=nbs.filter(j=>!g[j].o);if(!unopened.length)continue;
+let s=0,k=0;unopened.forEach(j=>{if(g[j].t==='tnt')k++;else if(g[j].t!=='stone')s+=V[g[j].t]});
+info.push({unopened,s,k})}
+const safe=new Set(),likelyMine=new Set(),riskAgg={},valAgg={};
+info.forEach(({unopened,k})=>{if(k===0)unopened.forEach(j=>safe.add(j));if(k>0&&k===unopened.length)unopened.forEach(j=>likelyMine.add(j))});
+info.forEach(({unopened,s,k})=>{const risk=unopened.length?k/unopened.length:0;unopened.forEach(j=>{(riskAgg[j]=riskAgg[j]||[]).push(risk);valAgg[j]=(valAgg[j]||0)+s/unopened.length})});
+if(likelyMine.size&&Math.random()<.5){const lm=[...likelyMine].filter(j=>!g[j].o&&!g[j].f);if(lm.length)flag(lm[Math.floor(Math.random()*lm.length)])}
+let target=null;
+const safeArr=[...safe].filter(j=>!g[j].o&&g[j].f!==2);
+if(safeArr.length){const oppFlagged=safeArr.filter(j=>g[j].f===1);const pool=oppFlagged.length?oppFlagged:safeArr;target=pool[Math.floor(Math.random()*pool.length)]}
+else{const cand=[];for(let idx=0;idx<g.length;idx++){const c=g[idx];if(c.o||c.f===2)continue;cand.push(idx)}
+let pool=cand.filter(idx=>!likelyMine.has(idx));if(!pool.length)pool=cand;if(!pool.length)return;
+const scored=pool.map(idx=>{const risks=riskAgg[idx],risk=risks?risks.reduce((a,b)=>a+b,0)/risks.length:.12,val=valAgg[idx]||0;return{idx,score:val-risk*15+Math.random()*2}});
+scored.sort((a,b)=>b.score-a.score);const topN=scored.slice(0,Math.max(1,Math.ceil(scored.length*.25)));target=topN[Math.floor(Math.random()*topN.length)].idx}
+if(target!=null)performDig(target)}
+function render(){
+$('board').innerHTML=g.map((c,i)=>{if(!c.o)return`<button class="c" data-i="${i}">${over&&c.t!=='stone'?`<span class="xr">${EM[c.t]}</span>`:''}${c.f?`<svg class="fl f${c.f}" viewBox="0 0 24 24"><path d="M6 2v20" stroke="currentColor" stroke-width="2.5"/><path d="M6 3l14 5.5L6 14z" fill="currentColor"/></svg>`:''}</button>`;
+if(c.x)return`<button class="c o by${c.by} ore-tnt"><span class="m">💥</span></button>`;
+let s=0,k=0;nb(i).forEach(j=>{const d=g[j];if(!d.o){if(d.t==='tnt')k++;else if(d.t!=='stone')s+=V[d.t]}});
+return`<button class="c o by${c.by} ore-${c.t}"><span class="e">${EM[c.t]}</span>${s?`<span class="a">${s}</span>`:''}${k?`<span class="t">${k}</span>`:''}</button>`}).join('');
+const winnerIdx=over&&sc[0]!==sc[1]?(sc[0]>sc[1]?0:1):null;
+[0,1].forEach(n=>{const e=$('p'+(n+1)),win=winnerIdx===n;e.className='pl'+(!over&&p===n?' on':'')+(win?' winner':'');animateScore(n,sc[n]);e.querySelector('i').style.width=Math.min(100,sc[n]/CFG.target*100)+'%';
+let tag=e.querySelector('.winnerTag');
+if(win){if(!tag){tag=document.createElement('div');tag.className='winnerTag';tag.textContent='WINNER';e.appendChild(tag)}tag.className='winnerTag c'+(n+1)}
+else if(tag)tag.remove()});
+$('msg').innerHTML=over?(sc[0]===sc[1]?'<b>ゲーム終了：引き分け</b>':`ゲーム終了：<b style="color:var(--p${winnerIdx+1})">${winnerIdx===0?'PLAYER 1':(CFG.opponent==='cpu'?'CPU':'PLAYER 2')} の勝利！</b>`):`<b style="color:var(--p${p+1})">${p===1&&CFG.opponent==='cpu'?'🤖 CPU':'PLAYER '+(p+1)}</b> の番です`}
+$('board').addEventListener('click',e=>{if(isCpuTurn())return;const b=e.target.closest('.c');if(b&&b.dataset.i!==undefined)act(+b.dataset.i)});
+$('board').addEventListener('contextmenu',e=>{e.preventDefault();if(isCpuTurn())return;const b=e.target.closest('.c');if(b&&b.dataset.i!==undefined)flag(+b.dataset.i)});
+$('bd').onclick=()=>{mode='dig';$('bd').className='on';$('bf').className=''};
+$('bf').onclick=()=>{mode='flag';$('bf').className='on';$('bd').className=''};
+$('rs').onclick=init;
+$('toMenu').onclick=()=>showScreen('scrMenu');
+$('mStartHuman').onclick=()=>{CFG.opponent='human';showScreen('scrGame');init()};
+$('mStartCpu').onclick=()=>{CFG.opponent='cpu';showScreen('scrGame');init()};
+function openSettingsUI(){pendingSize=CFG.size;
+document.querySelectorAll('.sizebtn[data-size]').forEach(b=>b.classList.toggle('on',+b.dataset.size===pendingSize));
+$('cfg-diamond').value=CFG.diamond;$('cfg-gold').value=CFG.gold;$('cfg-iron').value=CFG.iron;$('cfg-coal').value=CFG.coal;$('cfg-tnt').value=CFG.tnt;$('cfg-target').value=CFG.target;$('stgErr').textContent=''}
+$('mSettings').onclick=()=>{openSettingsUI();showScreen('scrSettings')};
+document.querySelectorAll('.sizebtn[data-size]').forEach(b=>b.onclick=()=>{pendingSize=+b.dataset.size;document.querySelectorAll('.sizebtn[data-size]').forEach(x=>x.classList.toggle('on',x===b))});
+$('stgBack').onclick=()=>showScreen('scrMenu');
+$('stgApply').onclick=()=>{
+const sz=pendingSize,d=+$('cfg-diamond').value,go=+$('cfg-gold').value,ir=+$('cfg-iron').value,co=+$('cfg-coal').value,tn=+$('cfg-tnt').value,ta=+$('cfg-target').value;
+const nums=[d,go,ir,co,tn,ta];
+if(nums.some(v=>!Number.isInteger(v)||v<0)||ta<1){$('stgErr').textContent='数値を正しく入力してください（整数・0以上、勝利ポイントは1以上）';return}
+const total=d+go+ir+co+tn;
+if(total>sz*sz-1){$('stgErr').textContent=`鉱石とTNTの合計が盤面のマス数（${sz*sz}）を超えています（現在合計${total}）`;return}
+CFG={...CFG,size:sz,diamond:d,gold:go,iron:ir,coal:co,tnt:tn,target:ta};
+$('ruleTarget').textContent=CFG.target;
+$('stgErr').textContent='';showScreen('scrMenu')};
+</script></body></html>
